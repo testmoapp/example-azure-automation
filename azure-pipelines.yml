@@ -1,0 +1,52 @@
+trigger:
+- main
+
+variables:
+- group: 'Testmo'
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '19.x'
+  displayName: 'Install Node.js'
+
+# Skip this line if not installing your own NodeJS packages
+- script: |
+    npm ci
+  displayName: 'Install project packages'
+
+ # Install Testmo CLI tool locally (then use npx testmo .. to run it)
+- script: |
+    npm install --no-save @testmo/testmo-cli
+  displayName: 'Install Testmo CLI'
+
+# Optionally add a couple of fields such as the git hash and link to the build
+- script: |
+    npx testmo automation:resources:add-field --name git --type string \
+      --value ${GIT_COMMIT:0:7} --resources resources.json
+    RUN_URL="$BUILD_URL$BUILD_PROJECT/_build/results?buildId=$BUILD_ID"
+    npx testmo automation:resources:add-link --name build \
+      --url $RUN_URL --resources resources.json
+  env:
+    GIT_COMMIT: '$(Build.SourceVersion)'
+    BUILD_URL: '$(System.TeamFoundationCollectionUri)'
+    BUILD_PROJECT: '$(System.TeamProject)'
+    BUILD_ID: '$(Build.BuildId)'
+  displayName: 'Add commit hash and link'
+
+- script: |
+    npx testmo automation:run:submit \
+      --instance $TESTMO_URL \
+      --project-id 1 \
+      --name "Mocha test run" \
+      --source "unit-tests" \
+      --resources resources.json \
+      --results results/*.xml \
+      -- npm run mocha-junit # Note space after --
+  env:
+    TESTMO_TOKEN: '$(TESTMO_TOKEN)'
+    TESTMO_URL: '$(TESTMO_URL)'
+  displayName: 'Run tests and report results to Testmo'
