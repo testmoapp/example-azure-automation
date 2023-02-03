@@ -18,7 +18,7 @@ steps:
     npm ci
   displayName: 'Install project packages'
 
- # Install Testmo CLI tool locally (then use npx testmo .. to run it)
+# Install Testmo CLI tool locally (then use npx testmo .. to run it)
 - script: |
     npm install --no-save @testmo/testmo-cli
   displayName: 'Install Testmo CLI'
@@ -37,6 +37,7 @@ steps:
     BUILD_ID: '$(Build.BuildId)'
   displayName: 'Add commit hash and link'
 
+# Run automated tests and report results to Testmo
 - script: |
     npx testmo automation:run:submit \
       --instance $TESTMO_URL \
