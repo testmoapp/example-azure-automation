@@ -13,7 +13,7 @@ steps:
     versionSpec: '19.x'
   displayName: 'Install Node.js'
 
-# Skip this line if not installing your own NodeJS packages
+# Skip this line if not installing your own Node.js packages
 - script: |
     npm ci
   displayName: 'Install project packages'
